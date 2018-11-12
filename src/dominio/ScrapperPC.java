@@ -7,7 +7,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
-public class AgentePC {
+public class ScrapperPC {
 
 	public static void main(String[] args) throws IOException, InterruptedException {
 
