@@ -67,6 +67,7 @@ public class AgentePC extends Agent{
     public int onEnd(){
       System.out.println(this.nombre);
       seq1.addSubBehaviour(new GetPrice(link));
+      seq1.addSubBehaviour(new GetRating(link));
       return super.onEnd();
     }
 
@@ -104,7 +105,6 @@ public class AgentePC extends Agent{
 
     public int onEnd(){
       System.out.println("Precio: "+this.precio);
-      seq1.addSubBehaviour(new GetRating(link));
       return super.onEnd();
     }
 

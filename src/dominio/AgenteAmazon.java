@@ -48,6 +48,7 @@ public class AgenteAmazon extends Agent{
     public int onEnd(){
       System.out.println(link);
       seq1.addSubBehaviour(new GetPrice(link));
+      seq1.addSubBehaviour(new GetRating(link));
       return super.onEnd();
     }
 
@@ -100,7 +101,6 @@ public class AgenteAmazon extends Agent{
 
     public int onEnd(){
       System.out.println("Precio: "+this.precio);
-      seq1.addSubBehaviour(new GetRating(link));
       return super.onEnd();
     }
 
@@ -128,8 +128,7 @@ public class AgenteAmazon extends Agent{
   		Pattern p = Pattern.compile("[0-9]([.,][0-9])? de[ a-zA-Zá0-9]*");
   		Matcher m = p.matcher(ratingStars.text());
   		if(m.matches()) {
-  			String[] valoracion = ratingStars.text().split("de"); //Obtenemos la primera parte de la cadena
-  			valoracion[0] = valoracion[0].replace(" ", "");
+  			String[] valoracion = ratingStars.text().split(" de"); //Obtenemos la primera parte de la cadena
   			double valoracionDouble = Double.parseDouble(valoracion[0]);
   			valoracionDouble = valoracionDouble/5; //Dividimos por el maximo
   			valoracionDouble = valoracionDouble*100; //Obtenemos el valor porcentual
