@@ -26,7 +26,7 @@ public class AgentePC extends Agent{
     Element link;
 
     public void action(){
-      String queryPc = "https://www.pccomponentes.com/buscar/?query=" + query;
+      String queryPc = "https://www.pccomponentes.com/smartphone-moviles/8-gb-ram/oneplus";
       try{
         Document docPc = Jsoup.connect(queryPc).get();
         link = docPc.select(".GTM-productClick").first();
@@ -36,7 +36,6 @@ public class AgentePC extends Agent{
     }
 
     public int onEnd(){
-      System.out.println(link);
       seq1.addSubBehaviour(new GetName(link));
       return super.onEnd();
     }

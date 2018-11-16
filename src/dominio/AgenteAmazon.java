@@ -13,7 +13,7 @@ import jade.core.behaviours.*;
 
 public class AgenteAmazon extends Agent{
 
-  private String query = "portatil acer";
+  private String query = "OnePlus 6T 8GB/128GB Mirror Black Libre";
   private SequentialBehaviour seq1;
 
   protected void setup(){
@@ -46,7 +46,6 @@ public class AgenteAmazon extends Agent{
     }
 
     public int onEnd(){
-      System.out.println(link);
       seq1.addSubBehaviour(new GetPrice(link));
       seq1.addSubBehaviour(new GetRating(link));
       return super.onEnd();
@@ -123,7 +122,7 @@ public class AgenteAmazon extends Agent{
         System.out.println("Error de conexión");
       }
 
-      Elements ratingStars = docElem.select(".a-declarative .a-icon-alt");
+      Element ratingStars = docElem.select(".a-declarative .a-icon-alt").first();
   		//Ejemplo de formato: 4.2 de un máximo de 5 estrellas
   		Pattern p = Pattern.compile("[0-9]([.,][0-9])? de[ a-zA-Zá0-9]*");
   		Matcher m = p.matcher(ratingStars.text());
