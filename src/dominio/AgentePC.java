@@ -10,64 +10,61 @@ import org.jsoup.nodes.Element;
 import jade.core.Agent;
 import jade.core.behaviours.*;
 
+import jade.core.AID;
+import jade.lang.acl.ACLMessage;
+import jade.proto.AchieveREResponder;
+import jade.lang.acl.MessageTemplate;
+
+import jade.domain.FIPAAgentManagement.NotUnderstoodException;
+import jade.domain.FIPAAgentManagement.RefuseException;
+import jade.domain.FIPAAgentManagement.FailureException;
+
 public class AgentePC extends Agent{
 
-  private String query = "portatil acer";
+  private AID intermediario = new AID("intermediario", AID.ISLOCALNAME);
   private SequentialBehaviour seq1;
 
   protected void setup(){
     seq1 = new SequentialBehaviour();
-    seq1.addSubBehaviour(new GetURL());
+    seq1.addSubBehaviour(new GetName(this, MessageTemplate.MatchSender(intermediario)));
     addBehaviour(seq1);
   }
 
-  public class GetURL extends OneShotBehaviour{
+  private class GetName extends AchieveREResponder{
 
-    Element link;
+    public GetName(Agent ag, MessageTemplate mt){
+      super(ag, mt);
+    }
 
-    public void action(){
-      String queryPc = "https://www.pccomponentes.com/smartphone-moviles/8-gb-ram/oneplus";
+    protected ACLMessage handleRequest(ACLMessage msg) throws NotUnderstoodException, RefuseException{
+      //Este metodo es necesario para poder lanzar FailureException en prepareResultNotification
+      return null;
+    }
+
+    protected ACLMessage prepareResultNotification(ACLMessage msg, ACLMessage sent) throws FailureException{
+      System.out.println("AgentePC: Buscando producto con las especificaciones dadas. Por favor, espere un momento.");
+      String queryPc = "https://www.pccomponentes.com/smartphone-moviles/" + msg.getContent();
+      Element link = null;
       try{
         Document docPc = Jsoup.connect(queryPc).get();
-        link = docPc.select(".GTM-productClick").first();
+        link = docPc.select(".GTM-productClick.enlace-superpuesto").first();
       } catch (Exception e){
-        System.out.println("Error en la conexión");
+        throw new FailureException("Error en la conexión a PC Componentes.");
       }
-    }
 
-    public int onEnd(){
-      seq1.addSubBehaviour(new GetName(link));
-      return super.onEnd();
-    }
-
-  }
-
-  public class GetName extends OneShotBehaviour{
-
-    Element link;
-    String nombre;
-
-    public GetName(Element link){
-      this.link = link;
-    }
-
-    Document docElem = null;
-    public void action(){
+      Document docElem = null;
       try{
         docElem = Jsoup.connect(link.absUrl("href")).get();
       } catch(Exception e){
-        System.out.println("Error de conexión");
+        throw new FailureException("AgentePC: Error obteniendo nombre del producto en PC Componentes.");
       }
 
   		Element nombre = docElem.select(".h4").first();
-      this.nombre = nombre.text();
-    }
 
-    public int onEnd(){
-      System.out.println(this.nombre);
-      seq1.addSubBehaviour(new GetPrice(link));
-      seq1.addSubBehaviour(new GetRating(link));
-      return super.onEnd();
+      ACLMessage inform = msg.createReply();
+      inform.setPerformative(ACLMessage.INFORM);
+      inform.setContent(nombre.text());
+      return inform;
     }
 
   }
@@ -136,7 +133,6 @@ public class AgentePC extends Agent{
 
         rating = rating.replace(",", ".");
         this.rating = Double.parseDouble(rating);
-  			//Return Mensaje con el rating sin
   		}
     }
 
@@ -148,3 +144,4 @@ public class AgentePC extends Agent{
   }
 
 }
+
