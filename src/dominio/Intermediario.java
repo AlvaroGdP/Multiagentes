@@ -17,20 +17,24 @@ public class Intermediario extends Agent{
   private AID agenteAmazon = new AID("agenteAmazon", AID.ISLOCALNAME);
 
   private ACLMessage inicial = new ACLMessage(ACLMessage.QUERY_IF);
+  private ACLMessage msgNombrePC = new ACLMessage(ACLMessage.QUERY_IF);
+  //Sin utilizar
+  private String nombre;
 
   protected void setup(){
     seq1 = new SequentialBehaviour();
-    seq1.addSubBehaviour(new GetProductInfo());
+    seq1.addSubBehaviour(new AskProductInfo());
     seq1.addSubBehaviour(new SendProductInfo(this, inicial));
+    seq1.addSubBehaviour(new SendName(this, msgNombrePC));
     addBehaviour(seq1);
   }
 
-  private class GetProductInfo extends OneShotBehaviour{
+  private class AskProductInfo extends OneShotBehaviour{
 
     public void action(){
       int ram = -1;
       while (ram==-1){
-        System.out.println("¿Cuanta RAM deseas que tenga el movil?");
+        System.out.println("\n¿Cuanta RAM deseas que tenga el movil?");
         try {
           ram = Integer.parseInt(reader.nextLine());
         }catch (Exception e){
@@ -51,7 +55,30 @@ public class Intermediario extends Agent{
     }
 
     protected void handleInform(ACLMessage inform){
-      System.out.println("Intermediario: Recibido "+inform.getContent()+". Enviando a los agentes.");
+      System.out.println("Intermediario: Recibido "+inform.getContent()+". Obteniendo datos del producto de los agentes.");
+      nombre = inform.getContent();
+      msgNombrePC.setContent(nombre);
+      msgNombrePC.addReceiver(agentePC);
+    }
+
+    protected void handleFailure(ACLMessage fallo){
+      System.err.println(fallo.getContent());
+    }
+
+  }
+
+  private class SendName extends AchieveREInitiator{
+
+    public SendName(Agent ag, ACLMessage msg){
+      super(ag, msg);
+    }
+
+    protected void handleInform(ACLMessage inform){
+      String[] splitted = inform.getContent().split(",");
+      System.out.println("\nIntermediario: Recibida información del producto "+nombre+".");
+      System.out.println("\tWeb: "+splitted[0]);
+      System.out.println("\tPrecio: "+splitted[1]+ " €");
+      System.out.println("\tValoración: "+splitted[2]+"/ 100 \n");
     }
 
     protected void handleFailure(ACLMessage fallo){
