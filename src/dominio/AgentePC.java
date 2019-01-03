@@ -25,9 +25,17 @@ public class AgentePC extends Agent{
   private ParallelBehaviour par1;
 
   protected void setup(){
-    par1 = new ParallelBehaviour();
-    par1.addSubBehaviour(new GetName(this, MessageTemplate.MatchSender(intermediario)));
-    par1.addSubBehaviour(new GetProductInfo(this, MessageTemplate.MatchSender(intermediario)));
+    par1 = new ParallelBehaviour()/*{
+      public int onEnd(){
+        //par1.addSubBehaviour(new GetName(myAgent, MessageTemplate.MatchSender(intermediario)));
+        //par1.addSubBehaviour(new GetProductInfo(myAgent, MessageTemplate.MatchSender(intermediario)));
+        par1.reset();
+        addBehaviour(par1);
+        return 0;
+      }
+    }*/;
+    par1.addSubBehaviour(new GetName(this, MessageTemplate.and(MessageTemplate.MatchSender(intermediario),MessageTemplate.MatchOntology("Nombre"))));
+    par1.addSubBehaviour(new GetProductInfo(this, MessageTemplate.and(MessageTemplate.MatchSender(intermediario),MessageTemplate.MatchOntology("Info"))));
     addBehaviour(par1);
   }
 
@@ -44,14 +52,14 @@ public class AgentePC extends Agent{
 
     protected ACLMessage prepareResultNotification(ACLMessage msg, ACLMessage sent) throws FailureException{
       System.out.println("AgentePC: Buscando producto con las especificaciones dadas. Por favor, espere un momento.");
-      String queryPc = "https://www.pccomponentes.com/smartphone-moviles/" + msg.getContent();
+      String queryPc = "https://www.pccomponentes.com/smartphone-moviles" + msg.getContent();
 
       Element link = null;
       try{
         Document docPc = Jsoup.connect(queryPc).get();
         link = docPc.select(".GTM-productClick.enlace-superpuesto").first();
       } catch (Exception e){
-        throw new FailureException("Error en la conexión a PC Componentes.");
+        throw new FailureException("Error en la conexión a PC Componentes o no existen coincidencias con las características indicadas.");
       }
 
       Document docElem = null;
@@ -129,9 +137,8 @@ public class AgentePC extends Agent{
 
       ACLMessage inform = msg.createReply();
       inform.setPerformative(ACLMessage.INFORM);
-      inform.setContent("PCComponentes,"+coste+","+rating);
+      inform.setContent("PCComponentes,"+coste+","+rating+","+link.absUrl("href"));
       return inform;
-
     }
 
   }
