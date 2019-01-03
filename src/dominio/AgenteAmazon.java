@@ -120,6 +120,8 @@ public class AgenteAmazon extends Agent{
         try{
           Double.parseDouble(precio);
         }catch (Exception e){
+          //Forma de comprobar si se ha obtenido de forma correcta
+          // En ocasiones se obtenian precios erroneos, incluso tras el match con la expresion regular
           throw new FailureException("AgenteAmazon: Error obteniendo precio del producto.");
         }
   		}

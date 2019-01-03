@@ -35,6 +35,7 @@ public class Intermediario extends Agent{
   private String infoAmazon = null;
 
   protected void setup(){
+
     seq1 = new SequentialBehaviour();
     par1 = new ParallelBehaviour();
     api1 = new AskProductInfo();
@@ -42,6 +43,7 @@ public class Intermediario extends Agent{
     sn1 = new SendName(this, msgNombrePC);
     sn2 = new SendName(this, msgNombreAmazon);
     sr = new ShowResults();
+
     seq1.addSubBehaviour(api1);
     seq1.addSubBehaviour(spi1);
     par1.addSubBehaviour(sn1);
@@ -197,9 +199,6 @@ public class Intermediario extends Agent{
         //Solo hay informacion de dicho producto en una web
         if (infoPC!=null){
           System.out.println("Dado que el producto obtenido en la búsqueda solo se encuentra en la web PCComponentes, sugerimos comprarlo en dicha tienda.");
-        }
-        if (infoAmazon!=null){
-          System.out.println("Dado que el producto obtenido en la búsqueda solo se encuentra en la web Amazon, sugerimos comprarlo en dicha tienda.");
         }
       }
 
