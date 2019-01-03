@@ -119,7 +119,7 @@ public class AgentePC extends Agent{
   			coste = coste.substring(0, coste.length() - 2);
   			coste = coste.replace(",", ".");
   		}else{
-        System.out.println("AgentePC: Formato inválido de precio. URL: "+link.absUrl("href"));
+        throw new FailureException("AgentePC: Error obteniendo precio del producto.");
       }
 
       // Valoración
@@ -132,7 +132,7 @@ public class AgentePC extends Agent{
   			rating = rating.substring(7, rating.length() - 2);
         rating = rating.replace(",", ".");
   		}else{
-        System.out.println("AgentePC: Formato inválido en valoración. URL: "+link.absUrl("href"));
+        throw new FailureException("AgentePC: Error obteniendo valoración del producto.");
       }
 
       ACLMessage inform = msg.createReply();
