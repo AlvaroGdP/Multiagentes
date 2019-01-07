@@ -27,14 +27,7 @@ public class AgenteAmazon extends Agent{
   private ParallelBehaviour par1;
 
   protected void setup(){
-    par1 = new ParallelBehaviour()/*{
-      public int onEnd(){
-        //par1.addSubBehaviour(new GetProductInfo(myAgent, MessageTemplate.MatchSender(intermediario)));
-        par1.reset();
-        addBehaviour(par1);
-        return 0;
-      }
-    }*/;
+    par1 = new ParallelBehaviour();
     par1.addSubBehaviour(new GetProductInfo(this, MessageTemplate.and(MessageTemplate.MatchSender(intermediario),MessageTemplate.MatchOntology("Info"))));
     addBehaviour(par1);
   }
