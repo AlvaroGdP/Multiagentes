@@ -18,39 +18,24 @@ public class Intermediario extends Agent{
   private static Scanner reader = new Scanner (System.in);
   private SequentialBehaviour seq1;
   private ParallelBehaviour par1;
-  private AskProductInfo api1;
-  private SendProductInfo spi1;
-  private SendName sn1;
-  private SendName sn2;
-  private ShowResults sr;
   private AID agentePC = new AID("agentePC", AID.ISLOCALNAME);
   private AID agenteAmazon = new AID("agenteAmazon", AID.ISLOCALNAME);
 
-  private ACLMessage inicial = new ACLMessage(ACLMessage.QUERY_IF);
-  private ACLMessage msgNombrePC = new ACLMessage(ACLMessage.QUERY_IF);
-  private ACLMessage msgNombreAmazon = new ACLMessage(ACLMessage.QUERY_IF);
+  private ACLMessage inicial;
+  private ACLMessage msgNombrePC;
+  private ACLMessage msgNombreAmazon;
   private String nombre;
 
   private String infoPC = null;
   private String infoAmazon = null;
 
   protected void setup(){
-
-    seq1 = new SequentialBehaviour();
-    par1 = new ParallelBehaviour();
-    api1 = new AskProductInfo();
-    spi1 = new SendProductInfo(this,inicial);
-    sn1 = new SendName(this, msgNombrePC);
-    sn2 = new SendName(this, msgNombreAmazon);
-    sr = new ShowResults();
-
-    seq1.addSubBehaviour(api1);
-    seq1.addSubBehaviour(spi1);
-    par1.addSubBehaviour(sn1);
-    par1.addSubBehaviour(sn2);
-    seq1.addSubBehaviour(par1);
-    seq1.addSubBehaviour(sr);
-    addBehaviour(seq1);
+    try{
+      //Evitamos que los primeros mensajes se pierdan entre los de inicializacion de jade
+      Thread.sleep(1000);
+    }catch (Exception e){
+    }
+    addBehaviour(new AskProductInfo());
   }
 
   private class AskProductInfo extends OneShotBehaviour{
@@ -59,6 +44,7 @@ public class Intermediario extends Agent{
       String mensaje = "";
       int ram = -1;
       HashSet<Integer> ram_set = new HashSet<Integer>(Arrays.asList(1, 2, 4, 6, 8, 0));
+      System.out.println("\n-----------------------------------------\n");
       while (!ram_set.contains(ram)){
         System.out.println("\n¿Cuanta RAM deseas que tenga el movil?");
         System.out.println("Opciones: 1, 2, 4, 6, 8 (GB), 0 si no le importa esta característica");
@@ -102,9 +88,12 @@ public class Intermediario extends Agent{
           mensaje+="/de-"+megapixeles+"-mp";
       }
       System.out.println();
+      inicial = new ACLMessage(ACLMessage.QUERY_IF);
       inicial.setContent(mensaje);
       inicial.addReceiver(agentePC);
       inicial.setOntology("Nombre");
+
+      addBehaviour(new SendProductInfo(this.getAgent(), inicial));
     }
 
   }
@@ -118,16 +107,31 @@ public class Intermediario extends Agent{
     protected void handleInform(ACLMessage inform){
       System.out.println("Intermediario: Recibido "+inform.getContent()+". Obteniendo datos del producto de los agentes.");
       nombre = inform.getContent();
+
+      msgNombrePC = new ACLMessage(ACLMessage.QUERY_IF);
       msgNombrePC.setContent(nombre);
       msgNombrePC.addReceiver(agentePC);
       msgNombrePC.setOntology("Info");
+
+      msgNombreAmazon = new ACLMessage(ACLMessage.QUERY_IF);
       msgNombreAmazon.setContent(nombre);
       msgNombreAmazon.addReceiver(agenteAmazon);
       msgNombreAmazon.setOntology("Info");
+
+      seq1 = new SequentialBehaviour();
+      par1 = new ParallelBehaviour();
+      par1.addSubBehaviour(new SendName(this.getAgent(), msgNombrePC));
+      par1.addSubBehaviour(new SendName(this.getAgent(), msgNombreAmazon));
+      seq1.addSubBehaviour(par1);
+      seq1.addSubBehaviour(new ShowResults());
+      addBehaviour(seq1);
+      removeBehaviour(this);
     }
 
     protected void handleFailure(ACLMessage fallo){
       System.err.println(fallo.getContent());
+      addBehaviour(new AskProductInfo());
+      removeBehaviour(this);
     }
 
   }
@@ -136,6 +140,8 @@ public class Intermediario extends Agent{
 
     public SendName(Agent ag, ACLMessage msg){
       super(ag, msg);
+      infoPC = null;
+      infoAmazon = null;
     }
 
     protected void handleInform(ACLMessage inform){
@@ -145,11 +151,12 @@ public class Intermediario extends Agent{
       }else{
         infoAmazon = inform.getContent();
       }
-
+      removeBehaviour(this);
     }
 
     protected void handleFailure(ACLMessage fallo){
       System.err.println(fallo.getContent());
+      removeBehaviour(this);
     }
 
   }
@@ -191,17 +198,21 @@ public class Intermediario extends Agent{
           System.out.println("\nDado que el precio en PCComponentes es menor, sugerimos comprarlo en dicha web.");
         }
         System.out.println("Esto le ahorrará un total de "+Math.abs(Double.parseDouble(splittedPC[1]) - Double.parseDouble(splittedAmazon[1]))+"€");
+
         if (Math.abs(Double.parseDouble(splittedPC[2]) - Double.parseDouble(splittedAmazon[2])) > 30.0){
           System.out.println("Las valoraciones del producto en ambas webs difieren en gran medida.\n\tQuizá desee visitarlas manualmente para conocer el motivo.");
         }
 
+        if ((Double.parseDouble(splittedPC[1])/Double.parseDouble(splittedAmazon[1])) > 2 ||  (Double.parseDouble(splittedAmazon[1])/Double.parseDouble(splittedPC[1])) > 2){
+          System.out.println("El precio del producto en ambas webs difiere en gran medida (El precio es al menos el doble en una respecto a la otra).\n\tQuizá desee visitarlas manualmente para conocer el motivo.");
+        }
       }else{
         //Solo hay informacion de dicho producto en una web
         if (infoPC!=null){
           System.out.println("Dado que el producto obtenido en la búsqueda solo se encuentra en la web PCComponentes, sugerimos comprarlo en dicha tienda.");
         }
       }
-
+      addBehaviour(new AskProductInfo());
     }
   }
 
