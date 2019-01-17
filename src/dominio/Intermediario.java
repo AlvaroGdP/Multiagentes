@@ -74,10 +74,10 @@ public class Intermediario extends Agent{
       }
 
       int megapixeles = -1;
-      HashSet<Integer> mp_set = new HashSet<Integer>(Arrays.asList(2, 5,8, 10, 16, 32, 64, 128, 256, 512, 0));
+      HashSet<Integer> mp_set = new HashSet<Integer>(Arrays.asList(2, 5, 8, 10, 12, 13, 16, 20, 21, 23, 0));
       while(!mp_set.contains(megapixeles)){
         System.out.println("\n¿Cuántos megapixeles quieres en la cámara del móvil?");
-        System.out.println("Opciones: 2, 5, 8, 10, 12, 13, 16, 19, 20, 21, 23, 24, 40 (MP), 0 si no le importa esta característica");
+        System.out.println("Opciones: 2, 5, 8, 10, 12, 13, 16, 20, 21, 23 (MP), 0 si no le importa esta característica");
         try{
           megapixeles = Integer.parseInt(reader.nextLine());
         }catch(Exception e){
